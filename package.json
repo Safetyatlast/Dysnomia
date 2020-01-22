@@ -1,0 +1,17 @@
+{
+  "name": "dysnomia",
+  "version": "1.0.0",
+  "description": "A lightweight, efficient Eris command handler and router",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Motoenduroboy",
+  "license": "ISC",
+  "dependencies": {},
+  "devDependencies": {
+    "eslint": "6.8.0",
+    "eslint-config-airbnb-base": "14.0.0",
+    "eslint-plugin-import": "2.20.0"
+  }
+}
