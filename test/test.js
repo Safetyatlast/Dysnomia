@@ -70,13 +70,13 @@ describe('Handler', function() {
 describe('Command', function() {
   const Command = new (require('../lib/structures/Command')) ({names: ["cooldown"], cooldown: 10000});
   Handler.registerCommands(Command);
-  describe('#updateCooldown', function() {
+  describe('#updateCooldown()', function() {
     it('should add user to the cooldowns map', function() {
       Command.updateCooldown("158594933274574849");
       assert.equal(Command.cooldowns.has("158594933274574849"), true);
     });
   });
-  describe('#checkCooldown', function() {
+  describe('#checkCooldown()', function() {
     it('should return false when user is not on a cooldown', function() {
       assert.equal(Command.checkCooldown("279866000533618689"), false);
     });
