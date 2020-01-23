@@ -1,6 +1,8 @@
 const assert = require('assert');
 const Handler = new (require('../lib/structures/Handler')) ({ prefix: '&' });
 
+const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+
 describe('Handler', function() {
   describe('#setGuildPrefix()', function() {
     Handler.setGuildPrefix('401134835818692608', '!');
@@ -68,7 +70,7 @@ describe('Handler', function() {
 });
 
 describe('Command', function() {
-  const Command = new (require('../lib/structures/Command')) ({names: ["cooldown"], cooldown: 10000});
+  const Command = new (require('../lib/structures/Command')) ({names: ["cooldown"], cooldown: 1000});
   Handler.registerCommands(Command);
   describe('#updateCooldown()', function() {
     it('should add user to the cooldowns map', function() {
@@ -83,6 +85,10 @@ describe('Command', function() {
     it('should return true when user is on a cooldown', function() {
       Command.updateCooldown("279866000533618689");
       assert.equal(Command.checkCooldown("279866000533618689"), true);
+    });
+    it('should remove users cooldown and return false', async function() {
+      await sleep(1500);
+      assert.equal(Command.checkCooldown("279866000533618689"), false);
     });
   });
 });
