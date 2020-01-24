@@ -19,6 +19,14 @@ describe('Handler', function() {
     });
   });
 
+  describe('#registerPrecondition()', function() {
+    const TestPrecondition = new (require('../lib/structures/Precondition')) ({name: 'TestPrecondition'});
+    Handler.registerPreconditions([TestPrecondition]);
+    it('should add the precondition to the preconditions map', function() {
+      assert.deepStrictEqual(Handler.preconditions.get('TestPrecondition'), TestPrecondition);
+    });
+  });
+
   describe('#parseCommand()', function() {
     const Command = new (require('../lib/structures/Command')) ({names: ["ping pong", "ping", "pong"]});
     Handler.registerCommands(Command);
@@ -65,6 +73,27 @@ describe('Handler', function() {
         },
         content: "&ping pong !"
       }), { Command, Content: "!" });
+    });
+  });
+
+  describe('#executePreconditions()', function() {
+    const TruePrecondition = new (require('../lib/structures/Precondition')) ({name: 'TruePrecondition'});
+    TruePrecondition.run = () => true;
+    const FalsePrecondition = new (require('../lib/structures/Precondition')) ({name: 'FalsePrecondition'});
+    FalsePrecondition.run = () => false;
+    Handler.registerPreconditions([TruePrecondition, FalsePrecondition]);
+    const CommandA = new (require('../lib/structures/Command')) ({names: ["a"], preconditions: ['TruePrecondition']});
+    const CommandB = new (require('../lib/structures/Command')) ({names: ["b"], preconditions: ['FalsePrecondition']});
+    const CommandC = new (require('../lib/structures/Command')) ({names: ["c"], preconditions: ['TruePrecondition', 'FalsePrecondition']});
+    Handler.registerCommands([CommandA, CommandB, CommandC]);
+    it('should return empty object when all Preconditions return true', async function() {
+      assert.deepStrictEqual(await Handler.executePreconditions({}, CommandA), {});
+    });
+    it('should return the precondition error and precondition that returned false', async function() {
+      assert.deepStrictEqual(await Handler.executePreconditions({}, CommandB), { precondition: FalsePrecondition });
+    });
+    it('should return the precondition error and precondition that returned false when there are multiple preconditions', async function() {
+      assert.deepStrictEqual(await Handler.executePreconditions({}, CommandB), { precondition: FalsePrecondition });
     });
   });
 });
