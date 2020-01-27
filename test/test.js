@@ -86,14 +86,14 @@ describe('Handler', function() {
     const CommandB = new (require('../lib/structures/Command')) ({names: ["b"], preconditions: ['FalsePrecondition']});
     const CommandC = new (require('../lib/structures/Command')) ({names: ["c"], preconditions: ['TruePrecondition', 'FalsePrecondition']});
     Handler.registerCommands([CommandA, CommandB, CommandC]);
-    it('should return empty object when all Preconditions return true', async function() {
-      assert.deepStrictEqual(await Handler.executePreconditions({}, CommandA), {});
+    it('should return undefined when all Preconditions return true', async function() {
+      assert.deepStrictEqual(await Handler.executePreconditions({}, CommandA), undefined);
     });
     it('should return the precondition error and precondition that returned false', async function() {
-      assert.deepStrictEqual(await Handler.executePreconditions({}, CommandB), { precondition: FalsePrecondition });
+      assert.deepStrictEqual(await Handler.executePreconditions({}, CommandB), FalsePrecondition);
     });
     it('should return the precondition error and precondition that returned false when there are multiple preconditions', async function() {
-      assert.deepStrictEqual(await Handler.executePreconditions({}, CommandB), { precondition: FalsePrecondition });
+      assert.deepStrictEqual(await Handler.executePreconditions({}, CommandB), FalsePrecondition);
     });
   });
 
