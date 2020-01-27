@@ -97,7 +97,7 @@ describe('Handler', function() {
     });
   });
 
-  describe('#executePreconditions()', function() {
+  describe('#executeMiddleware()', function() {
     const MiddlewareA = new (require('../lib/structures/Precondition')) ({name: 'MiddlewareA'});
     MiddlewareA.run = (msg) => { msg.A = "A"; return msg };
     const MiddlewareB = new (require('../lib/structures/Precondition')) ({name: 'MiddlewareB'});
@@ -107,10 +107,14 @@ describe('Handler', function() {
     const CommandE = new (require('../lib/structures/Command')) ({names: ["c"], middleware: ['MiddlewareA', 'MiddlewareB']});
     Handler.registerCommands([CommandD, CommandE]);
     it('should return a modified message object', async function() {
-      assert.deepStrictEqual(await Handler.executeMiddleware({}, CommandD), {A: "A"});
+      const fmsg = {};
+      await Handler.executeMiddleware(fmsg, CommandD);
+      assert.deepStrictEqual(fmsg, {A: "A"});
     });
     it('should return a message object with multiple changes when multiple middleware are present', async function() {
-      assert.deepStrictEqual(await Handler.executeMiddleware({}, CommandE), { A: "A", B: "B" });
+      const fmsg = {};
+      await Handler.executeMiddleware(fmsg, CommandE);
+      assert.deepStrictEqual(fmsg, { A: "A", B: "B" });
     });
   });
 });
