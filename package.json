@@ -4,15 +4,18 @@
   "description": "A lightweight, efficient Eris command handler and router",
   "main": "index.js",
   "scripts": {
-    "test": "mocha"
+    "test": "mocha",
+    "docs": "jsdoc ./lib/ --recurse"
   },
   "author": "Motoenduroboy",
   "license": "ISC",
   "dependencies": {},
   "devDependencies": {
+    "eris": "0.11.2",
     "eslint": "6.8.0",
     "eslint-config-airbnb-base": "14.0.0",
     "eslint-plugin-import": "2.20.0",
-    "mocha": "^7.0.0"
+    "mocha": "^7.0.0",
+    "jsdoc": "^3.6.3"
   }
 }

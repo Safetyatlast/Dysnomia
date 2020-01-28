@@ -1,5 +1,8 @@
 const assert = require('assert');
 const Handler = new (require('../lib/structures/Handler')) ({ prefix: '&' });
+const Argument = require('../lib/structures/Argument');
+const TypeReader = require('../lib/structures/TypeReader');
+const Command = require('../lib/structures/Command');
 
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
@@ -103,7 +106,7 @@ describe('Handler', function() {
     const MiddlewareB = new (require('../lib/structures/Precondition')) ({name: 'MiddlewareB'});
     MiddlewareB.run = (msg) => { msg.B = "B"; return msg };
     Handler.registerMiddleware([MiddlewareA, MiddlewareB]);
-    const CommandD = new (require('../lib/structures/Command')) ({names: ["a"], middleware: ['MiddlewareA']});
+    const CommandD = new (require('../lib/structures/Command')) ({names: ["d"], middleware: ['MiddlewareA']});
     const CommandE = new (require('../lib/structures/Command')) ({names: ["c"], middleware: ['MiddlewareA', 'MiddlewareB']});
     Handler.registerCommands([CommandD, CommandE]);
     it('should return a modified message object', async function() {
@@ -115,6 +118,29 @@ describe('Handler', function() {
       const fmsg = {};
       await Handler.executeMiddleware(fmsg, CommandE);
       assert.deepStrictEqual(fmsg, { A: "A", B: "B" });
+    });
+  });
+
+  describe('#parseArguments()', function() {
+    const TypeReaderA = new TypeReader({ name: "string" });
+    TypeReaderA.run = async (c) => {
+      if (typeof c === 'string') return c;
+      else throw new Error("Invalid String");
+    };
+    Handler.registerTypeReaders([TypeReaderA]);
+    const CommandF = new Command({names: ["f"]});
+    const CommandG = new Command({names: ["g"], arguments: [new Argument({ name: "argument 1", typeReader: "string" })]});
+    Handler.registerCommands([CommandF, CommandG]);
+
+    it('should return no arguments when no arguments specified', async function() {
+      const fmsg = {};
+      const r = await Handler.parseArguments("hi", fmsg, CommandF);
+      assert.deepStrictEqual(r, {});
+    });
+    it('should return an object filled arguments when arguments specified', async function() {
+      const fmsg = {};
+      const r = await Handler.parseArguments("hi", fmsg, CommandG);
+      assert.deepStrictEqual(r, {"argument 1": "hi"});
     });
   });
 });
