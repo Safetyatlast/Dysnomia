@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: Handler.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: Handler.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>const CommandError = require('../enums/CommandError');
+const Constants = require('../Constants');
+const Argument = require('./Argument');
+const TypeReader = require('./TypeReader');
+const Command = require("./Command");
+const Precondition = require("./Precondition");
+const Middleware = require("./Middleware");
+
+/**
+ * Command Handler
+ * @prop {String} prefix The default prefix for commands
+ * @prop {Boolean} argumentRegex The regex for splitting arguments
+ * @prop {Map} guildPrefixes Map of guild prefixes
+ * @prop {Command[]} commands Array of registered Commands
+ * @prop {Map} middleware Map of registered middleware
+ * @prop {Map} typeReaders Map of registered typeReaders
+ */
+class Handler {
+  /**
+   *
+   * @param {Object} options
+   * @param {String} options.prefix
+   * @param {RegExp?} options.argumentRegex
+   */
+  constructor(options) {
+    if (options.prefix &amp;&amp; options.prefix !== "") this.prefix = options.prefix;
+    else throw new Error("Invalid prefix");
+
+    if (options.argumentRegex) {
+      if (options.argumentRegex instanceof RegExp) this.argumentRegex = options.argumentRegex;
+      else throw new Error("Invalid argument regex");
+    }
+
+    this.guildPrefixes = new Map();
+    this.commands = [];
+    this.preconditions = new Map();
+    this.middleware = new Map();
+    this.typeReaders = new Map();
+  }
+
+  /**
+   *
+   * @param {String} guildID
+   * @param {String} prefix
+   */
+  setGuildPrefix(guildID, prefix) {
+    if (prefix === this.prefix) this.guildPrefixes.delete(guildID);
+    else if (prefix &amp;&amp; prefix !== "") this.guildPrefixes.set(guildID, prefix);
+  }
+
+  /**
+   *
+   * @param {Command[]} commands
+   */
+  registerCommands(commands) {
+    /* TODO Check Commands
+    * - Instance of Command
+    * - Preconditions exist
+    * - Middleware exist
+    * - Names are not already taken
+    */
+    if (Array.isArray(commands)) this.commands.concat(commands);
+    else if (commands) this.commands.push(commands);
+  }
+
+  /**
+   * @param {Precondition[] | Precondition} preconditions
+   */
+  registerPreconditions(preconditions) {
+    if (Array.isArray(preconditions)) {
+      for (const p of preconditions) {
+        this.preconditions.set(p.name, p);
+      }
+    }
+    else if (preconditions) this.preconditions.set(preconditions.name, preconditions);
+  }
+
+  /**
+   *
+   * @param {Middleware[] | Middleware} middleware
+   */
+  registerMiddleware(middleware) {
+    if (Array.isArray(middleware)) {
+      for (const m of middleware) {
+        this.middleware.set(m.name, m);
+      }
+    }
+    else if (middleware) this.middleware.set(middleware.name, middleware);
+  }
+
+  /**
+   *
+   * @param {TypeReader[] | TypeReader} typeReaders
+   */
+  registerTypeReaders(typeReaders) {
+    if (Array.isArray(typeReaders)) {
+      for (const t of typeReaders) {
+        this.typeReaders.set(t.name, t);
+      }
+    }
+    else if (typeReaders) this.typeReaders.set(typeReaders.name, typeReaders);
+  }
+
+  /**
+   *
+   * @param {Eris.Message} msg
+   * @returns {{Command: Command, Content: string}|boolean}
+   */
+  parseCommand(msg) {
+    const prefix = msg.channel.guild &amp;&amp; this.guildPrefixes.has(msg.channel.guild.id) ? this.guildPrefixes.get(msg.channel.guild.id) : this.prefix;
+    if (new RegExp('^' + prefix + '.{1,}', 'i').test(msg.content)) {
+      let Content = msg.content.slice(prefix.length);
+      const Command = this.commands.find(c => {
+        if (c.guildOnly &amp;&amp; msg.channel.type !== 0) return false;
+        return !!c.names.find(n => {
+          if (new RegExp('^' + n + ' ?.{0,}', 'i').test(Content)) {
+            Content = Content.slice(n.length).trim();
+            return true;
+          } else return false;
+        });
+      });
+      return {
+        Command,
+        Content
+      }
+    } else return false;
+  }
+
+  /**
+   *
+   * @param {Eris.Message} msg
+   * @param {Command} command
+   * @returns {boolean|String[]}
+   */
+  checkPermissions(msg, command) {
+    if (command.permissions.length > 0) {
+      const botMember = msg.channel.guild.get(msg._client.user.id);
+      return command.permissions.filter(p => !botMember.permission.has(p));
+    } else return true;
+  }
+
+  /**
+   *
+   * @param {Eris.Message} msg
+   * @param {Command} command
+   * @returns {Promise&lt;{precondition: Precondition}|{}>}
+   */
+  async executePreconditions(msg, command) {
+    if (command.preconditions.length > 0) {
+      for (const pn of command.preconditions) {
+        const precondition = this.preconditions.get(pn);
+        const r = await Promise.resolve(precondition.run(msg, command));
+        if (r) continue;
+        return precondition;
+      }
+    }
+  }
+
+  /**
+   *
+   * @param {Eris.Message} msg
+   * @param {Command} command
+   * @returns {Promise&lt;Eris.Message>}
+   */
+  async executeMiddleware(msg, command) {
+    if (command.middleware.length > 0) {
+      for (const m of command.middleware) {
+        const mw = this.middleware.get(m);
+        const r = await Promise.resolve(mw.run(msg, command));
+        if (r) msg = r;
+      }
+    }
+  }
+
+  /**
+   * @param {String} content
+   * @param {Eris.Message} msg
+   * @param {Command} command
+   * @returns {Promise&lt;{Argument: Argument, Error: Error}|{Object}>}
+   */
+  async parseArguments(content, msg, command) {
+    if (command.arguments.length === 0) return {};
+    const splitContent = content.split(this.argumentRegex || Constants.regexes.argumentRegex);
+    const args = {};
+    let splitContentIndex = 0;
+    for (let i = 0; i &lt; command.arguments.length; i++) {
+      const argument = command.arguments[i];
+      const typeReader = this.typeReaders.get(argument.typeReader);
+      if (argument.repeatable) {
+        for (let o = 0; o &lt; argument.maxRepeats; o++) {
+          try {
+            args[argument.name] = await Promise.resolve(typeReader.run(splitContent[splitContentIndex], msg, command));
+            splitContentIndex++;
+          } catch (err) {
+            splitContentIndex++;
+            if (o === 0) {
+              if (!argument.optional) return { Argument, Error: err.message };
+              else args[argument.name] = argument.defaultValue;
+            } else break;
+          }
+        }
+      } else {
+        try {
+          args[argument.name] = await Promise.resolve(typeReader.run(splitContent[splitContentIndex], msg, command));
+          splitContentIndex++;
+        } catch (err) {
+          splitContentIndex++;
+          if (!argument.optional) return { Argument, Error: err.message };
+          else args[argument.name] = argument.defaultValue;
+        }
+      }
+    }
+    return args;
+  }
+
+  /**
+   *
+   * @param {Eris.Message} msg
+   * @returns {Promise&lt;{MissingPermissions: String[], Error: symbol}|{Precondition: Precondition, Error: symbol}|{Argument: Argument, ErrorMessage: Error, Error: symbol}|{Error: symbol}>}
+   */
+  async run(msg) {
+    const result = this.parseCommand(msg);
+    if (result) {
+      if (result.Command) {
+        if (!result.Command.checkCooldown(msg.author.id)) {
+          let MissingPermissions = this.checkPermissions(msg, result.Command);
+          if (MissingPermissions.length === 0) {
+            const Precondition = await this.executePreconditions(msg, result.Command);
+            if (!Precondition) {
+                await this.executeMiddleware(msg, result.Command);
+                const argumentResult = await this.parseArguments(result.Content, msg, result.Command);
+                if (!argumentResult.Argument) {
+                  //TODO Execute Command.run()
+                } else {
+                  return {
+                    Error: CommandError.Argument,
+                    Argument: argumentResult.Argument,
+                    ErrorMessage: argumentResult.Error
+                  }
+                }
+            } else {
+              return {
+                Error: CommandError.Precondition,
+                Precondition
+              }
+            }
+          } else {
+            return {
+              Error: CommandError.MissingPermissions,
+              MissingPermissions,
+            }
+          }
+        } else {
+          return {
+            Error: CommandError.Cooldown
+          }
+        }
+      } else {
+        return {
+          Error: CommandError.UnknownCommand
+        }
+      }
+    } else {
+      //TODO: What to return if no prefix detected
+    }
+  }
+
+}
+
+module.exports = Handler;</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Command.html">Command</a></li><li><a href="Handler.html">Handler</a></li><li><a href="Middleware.html">Middleware</a></li><li><a href="Precondition.html">Precondition</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.3</a> on Tue Jan 28 2020 22:18:04 GMT+1100 (Australian Eastern Daylight Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
