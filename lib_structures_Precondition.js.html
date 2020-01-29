@@ -1,8 +1,10 @@
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>Home | Dysnomia</title>
+    <title>Source: lib/structures/Precondition.js | Dysnomia</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -42,29 +44,36 @@
 
 
     
-
-
-
-
-
-
-
-
-
-    
-
-
     <section>
-        <article class="readme"><p><a href="https://travis-ci.com/Safetyatlast/Dysnomia"><img src="https://travis-ci.com/Safetyatlast/Dysnomia.svg?branch=master" alt="Build Status"></a></p>
-<h1>Dysnomia</h1>
-<blockquote>
-<p><a href="%22https://en.wikipedia.org/wiki/Dysnomia_%28moon%29">Dysnomia (Δυσνομία)</a> is the only known moon of the dwarf planet <a href="https://en.wikipedia.org/wiki/Eris_%28dwarf_planet%29">Eris</a></p>
-</blockquote>
-<p><em>The</em> lightweight, performant, and no-nonsense <a href="https://github.com/abalabahaha/eris">Eris</a> Discord command router.</p>
-<p align="center"> [Github](https://github.com/Safetyatlast/Dysnomia/) • [Github](https://github.com/Safetyatlast/Dysnomia/) </p></article>
+        <article>
+            <pre class="prettyprint source linenums"><code>"use strict";
+/**
+ *
+ * @property {String} name Name of the middleware
+ */
+class Precondition {
+  /**
+   *
+   * @param {Object} options
+   * @param {String} options.name
+   */
+  constructor(options) {
+    if (typeof options.name === 'string' &amp;&amp; options.name !== "") this.name = options.name;
+    else throw new Error("Name must be a valid string!")
+  }
+
+  /**
+   *
+   * @param {Eris.Message} message
+   * @param {Command} command
+   * @return {Promise&lt;Boolean>}
+   */
+  async run() {}
+}
+
+module.exports = Precondition;</code></pre>
+        </article>
     </section>
-
-
 
 
 
@@ -81,7 +90,7 @@
 <script src="scripts/linenumber.js"></script>
 
     <script>
-        var id = 'package:undefined_sub'.replace(/"/g, '_');
+        var id = '_sub'.replace(/"/g, '_');
         var selectedApi = document.getElementById(id); // do not use jquery selector
         var $selectedApi = $(selectedApi);
 

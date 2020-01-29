@@ -1,8 +1,10 @@
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>Home | Dysnomia</title>
+    <title>Source: lib/structures/Command.js | Dysnomia</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -42,29 +44,99 @@
 
 
     
-
-
-
-
-
-
-
-
-
-    
-
-
     <section>
-        <article class="readme"><p><a href="https://travis-ci.com/Safetyatlast/Dysnomia"><img src="https://travis-ci.com/Safetyatlast/Dysnomia.svg?branch=master" alt="Build Status"></a></p>
-<h1>Dysnomia</h1>
-<blockquote>
-<p><a href="%22https://en.wikipedia.org/wiki/Dysnomia_%28moon%29">Dysnomia (Δυσνομία)</a> is the only known moon of the dwarf planet <a href="https://en.wikipedia.org/wiki/Eris_%28dwarf_planet%29">Eris</a></p>
-</blockquote>
-<p><em>The</em> lightweight, performant, and no-nonsense <a href="https://github.com/abalabahaha/eris">Eris</a> Discord command router.</p>
-<p align="center"> [Github](https://github.com/Safetyatlast/Dysnomia/) • [Github](https://github.com/Safetyatlast/Dysnomia/) </p></article>
+        <article>
+            <pre class="prettyprint source linenums"><code>"use strict";
+/**
+ *
+ * @property {String|String[]} names Names of the command
+ * @property {boolean} guildOnly If the command can only be run in a guild
+ * @property {String|String[]} permissions Permissions the bot requires to run the command
+ * @property {Number} cooldown How long until a member can run the command again
+ * @property {String|String[]} preconditions Preconditions to run before running the command
+ * @property {String|String[]} middleware Middleware to run before running the command
+ * @property {String|String[]} arguments Arguments for the commands
+ */
+class Command {
+  /**
+   *
+   * @param {Object} options
+   * @param {String[] | String} options.names
+   * @param {String[] | String} options.permissions
+   * @param {Number} options.cooldown
+   * @param {String[] | String} options.preconditions
+   * @param {String[] | String} options.middleware
+   * @param {Argument[] | Argument} options.arguments
+   * @returns Command
+   */
+  constructor(options) {
+    if (Array.isArray(options.names)) this.names = options.names;
+    else if (typeof options.names === 'string' &amp;&amp; options.names !== "") this.names = [options.names];
+    else throw new Error("Invalid command name(s) provided");
+
+    this.guildOnly = options.guildOnly != null ? options.guildOnly : false;
+
+    if (Array.isArray(options.permissions)) this.permissions = options.permissions;
+    else if (typeof options.permissions === 'string' &amp;&amp; options.permissions !== "") this.permissions = [options.permissions];
+    else this.permissions = [];
+
+    if (options.cooldown) {
+      if (!isNaN(options.cooldown)) this.cooldown = options.cooldown;
+      else throw new Error("Cooldown must be a number");
+    } else this.cooldown = 0;
+
+    this.cooldowns = new Map();
+
+    if (Array.isArray(options.preconditions)) this.preconditions = options.preconditions;
+    else if (typeof options.preconditions === 'string' &amp;&amp; options.preconditions !== "") this.preconditions = [options.preconditions];
+    else this.preconditions = [];
+
+    if (Array.isArray(options.middleware)) this.middleware = options.middleware;
+    else if (typeof options.middleware === 'string' &amp;&amp; options.middleware !== "") this.middleware = [options.middleware];
+    else this.middleware = [];
+
+    if (Array.isArray(options.arguments)) this.arguments = options.arguments;
+    else if (typeof options.arguments === "object") this.arguments = [options.arguments];
+    else this.arguments = [];
+  }
+
+  /**
+   *
+   * @private
+   * @param {String} userID
+   * @returns {boolean} whether the user is allowed to run the command again.
+   */
+  checkCooldown(userID) {
+    if (this.cooldowns.has(userID)) {
+      if (this.cooldowns.get(userID) + this.cooldown > Date.now()) return true;
+      else {
+        this.cooldowns.delete(userID);
+        return false;
+      }
+    }
+    else return false;
+  }
+
+  /**
+   * Sets the last time the user used the command to now.
+   * @private
+   * @param {String} userID
+   */
+  updateCooldown(userID) {
+    this.cooldowns.set(userID, Date.now());
+  }
+
+  /**
+   *
+   * @param {Eris.Message} message
+   * @param {Object} arguments
+   */
+  async run() {};
+}
+
+module.exports = Command;</code></pre>
+        </article>
     </section>
-
-
 
 
 
@@ -81,7 +153,7 @@
 <script src="scripts/linenumber.js"></script>
 
     <script>
-        var id = 'package:undefined_sub'.replace(/"/g, '_');
+        var id = '_sub'.replace(/"/g, '_');
         var selectedApi = document.getElementById(id); // do not use jquery selector
         var $selectedApi = $(selectedApi);
 

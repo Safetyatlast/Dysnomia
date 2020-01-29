@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>Class: Precondition | Dysnomia</title>
+    <title>Class: TypeReader | Dysnomia</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -46,7 +46,7 @@
 
 <header>
     
-        <h2><span class="attribs"><span class="type-signature"></span></span>Precondition<span class="signature">(options)</span><span class="type-signature"></span></h2>
+        <h2><span class="attribs"><span class="type-signature"></span></span>TypeReader<span class="signature">(options)</span><span class="type-signature"></span></h2>
         
     
 </header>
@@ -59,14 +59,14 @@
 
 <dt>
     
-        <h4 class="name" id="Precondition">
+        <h4 class="name" id="TypeReader">
             
-                new <span class="type-signature"></span>Precondition<span class="signature">(options)</span><span class="type-signature"></span>
+                new <span class="type-signature"></span>TypeReader<span class="signature">(options)</span><span class="type-signature"></span>
                 
             
             <div class="container-source members">
-                <code><a href="lib_structures_Precondition.js.html">lib/structures/Precondition.js</a></code>,
-                <code><a href="lib_structures_Precondition.js.html#line12">line 12</a></code>
+                <code><a href="lib_structures_TypeReader.js.html">lib/structures/TypeReader.js</a></code>,
+                <code><a href="lib_structures_TypeReader.js.html#line13">line 13</a></code>
             </div>
             
         </h4>
@@ -195,6 +195,22 @@
     
 
     
+    <div class="container-returns">
+        <h5>Returns:</h5>
+        
+                
+
+
+
+
+- <p>TypeReader</p>
+
+
+
+
+            
+    </div>
+    
 
     
 
@@ -317,12 +333,12 @@
     
         <h4 class="name" id="run">
             
-                <span class="type-signature"><span class="icon green">async</span> </span>run<span class="signature">(message, command)</span><span class="type-signature"> &rarr; {Promise.&lt;Boolean>}</span>
+                <span class="type-signature"><span class="icon green">async</span> </span>run<span class="signature">(content, message, command)</span><span class="type-signature"> &rarr; {any}</span>
                 
             
             <div class="container-source members">
-                <code><a href="lib_structures_Precondition.js.html">lib/structures/Precondition.js</a></code>,
-                <code><a href="lib_structures_Precondition.js.html#line23">line 23</a></code>
+                <code><a href="lib_structures_TypeReader.js.html">lib/structures/TypeReader.js</a></code>,
+                <code><a href="lib_structures_TypeReader.js.html#line25">line 25</a></code>
             </div>
             
         </h4>
@@ -362,6 +378,29 @@
     </thead>
 
     <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>content</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"></td>
+        </tr>
+
     
 
         <tr>
@@ -433,7 +472,7 @@
 
 
 
-<span class="param-type">Promise.&lt;Boolean></span>
+<span class="param-type">any</span>
 
 
 
@@ -512,7 +551,7 @@
 <script src="scripts/linenumber.js"></script>
 
     <script>
-        var id = 'Precondition_sub'.replace(/"/g, '_');
+        var id = 'TypeReader_sub'.replace(/"/g, '_');
         var selectedApi = document.getElementById(id); // do not use jquery selector
         var $selectedApi = $(selectedApi);
 

@@ -1,8 +1,10 @@
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>Home | Dysnomia</title>
+    <title>Source: index.js | Dysnomia</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -42,29 +44,37 @@
 
 
     
-
-
-
-
-
-
-
-
-
-    
-
-
     <section>
-        <article class="readme"><p><a href="https://travis-ci.com/Safetyatlast/Dysnomia"><img src="https://travis-ci.com/Safetyatlast/Dysnomia.svg?branch=master" alt="Build Status"></a></p>
-<h1>Dysnomia</h1>
-<blockquote>
-<p><a href="%22https://en.wikipedia.org/wiki/Dysnomia_%28moon%29">Dysnomia (Δυσνομία)</a> is the only known moon of the dwarf planet <a href="https://en.wikipedia.org/wiki/Eris_%28dwarf_planet%29">Eris</a></p>
-</blockquote>
-<p><em>The</em> lightweight, performant, and no-nonsense <a href="https://github.com/abalabahaha/eris">Eris</a> Discord command router.</p>
-<p align="center"> [Github](https://github.com/Safetyatlast/Dysnomia/) • [Github](https://github.com/Safetyatlast/Dysnomia/) </p></article>
+        <article>
+            <pre class="prettyprint source linenums"><code>"use strict";
+
+const Handler = require('./lib/structures/Handler');
+
+/**
+ *
+ * @param {Object} options
+ * @param {String} options.prefix Default guild prefix
+ * @param {RegExp?} options.argumentRegex Regex used for spiting arguments
+ * @returns Handler
+ */
+function Dysnomia (options) {
+  return new Handler(options);
+}
+
+Dysnomia.Handler = Handler;
+Dysnomia.Command = require('./lib/structures/Command');
+Dysnomia.Middleware = require('./lib/structures/Middleware');
+Dysnomia.Precondition = require('./lib/structures/Precondition');
+Dysnomia.Argument = require('./lib/structures/Argument');
+Dysnomia.TypeReader = require('./lib/structures/TypeReader');
+
+Dysnomia.Constants = require('./lib/Constants');
+
+Dysnomia.CommandError = require('./lib/enums/CommandError');
+
+module.exports = Dysnomia;</code></pre>
+        </article>
     </section>
-
-
 
 
 
@@ -81,7 +91,7 @@
 <script src="scripts/linenumber.js"></script>
 
     <script>
-        var id = 'package:undefined_sub'.replace(/"/g, '_');
+        var id = '_sub'.replace(/"/g, '_');
         var selectedApi = document.getElementById(id); // do not use jquery selector
         var $selectedApi = $(selectedApi);
 

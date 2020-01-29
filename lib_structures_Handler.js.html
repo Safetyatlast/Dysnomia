@@ -1,0 +1,373 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Source: lib/structures/Handler.js | Dysnomia</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/bootstrap.min.css">
+    <link type="text/css" rel="stylesheet" href="styles/prettify-jsdoc.css">
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/tui-doc.css">
+
+    
+</head>
+<body>
+<nav class="lnb" id="lnb">
+    <div class="logo" style="">
+        
+            <img src="img/toast-ui.png" width="100%" height="100%">
+        
+    </div>
+    <div class="title">
+        <h1><a href="index.html" class="link">Dysnomia</a></h1>
+        
+    </div>
+    <div class="search-container" id="search-container">
+        <input type="text" placeholder="Search">
+        <ul></ul>
+    </div>
+    
+    <div class="lnb-api hidden"><h3>Classes</h3><ul><li><a href="Argument.html">Argument</a><button type="button" class="hidden toggle-subnav btn btn-link">  <span class="glyphicon glyphicon-plus"></span></button><div class="hidden" id="Argument_sub"></div></li><li><a href="Command.html">Command</a><button type="button" class="hidden toggle-subnav btn btn-link">  <span class="glyphicon glyphicon-plus"></span></button><div class="hidden" id="Command_sub"><div class="member-type">Methods</div><ul class="inner"><li><a href="Command.html#run">run</a></li></ul></div></li><li><a href="Handler.html">Handler</a><button type="button" class="hidden toggle-subnav btn btn-link">  <span class="glyphicon glyphicon-plus"></span></button><div class="hidden" id="Handler_sub"><div class="member-type">Methods</div><ul class="inner"><li><a href="Handler.html#registerCommands">registerCommands</a></li><li><a href="Handler.html#registerGuildPrefix">registerGuildPrefix</a></li><li><a href="Handler.html#registerMiddleware">registerMiddleware</a></li><li><a href="Handler.html#registerPreconditions">registerPreconditions</a></li><li><a href="Handler.html#registerTypeReaders">registerTypeReaders</a></li><li><a href="Handler.html#run">run</a></li></ul></div></li><li><a href="Middleware.html">Middleware</a><button type="button" class="hidden toggle-subnav btn btn-link">  <span class="glyphicon glyphicon-plus"></span></button><div class="hidden" id="Middleware_sub"><div class="member-type">Methods</div><ul class="inner"><li><a href="Middleware.html#run">run</a></li></ul></div></li><li><a href="Precondition.html">Precondition</a><button type="button" class="hidden toggle-subnav btn btn-link">  <span class="glyphicon glyphicon-plus"></span></button><div class="hidden" id="Precondition_sub"><div class="member-type">Methods</div><ul class="inner"><li><a href="Precondition.html#run">run</a></li></ul></div></li><li><a href="TypeReader.html">TypeReader</a><button type="button" class="hidden toggle-subnav btn btn-link">  <span class="glyphicon glyphicon-plus"></span></button><div class="hidden" id="TypeReader_sub"><div class="member-type">Methods</div><ul class="inner"><li><a href="TypeReader.html#run">run</a></li></ul></div></li></ul></div><div class="lnb-api hidden"><h3>Global</h3><ul><li class="hidden"><a href="global.html#CommandError">CommandError</a></li><li><a href="global.html#Dysnomia">Dysnomia</a></li></ul></div>
+</nav>
+<div id="resizer"></div>
+
+<div class="main" id="main">
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>"use strict";
+const CommandError = require('../enums/CommandError');
+const Constants = require('../Constants');
+const Argument = require('./Argument');
+const TypeReader = require('./TypeReader');
+
+/**
+ *
+ * @property {String} prefix Default guild prefix
+ * @property {RegExp} argumentRegex Regex used for spiting arguments
+ * @property {Map} guildPrefixes Map of registered guild prefixes
+ * @property {Command[]} commands Array of registered commands
+ * @property {Map} commands Map of registered middleware
+ * @property {Map} typeReaders Map of registered typeReaders
+ */
+class Handler {
+  /**
+   *
+   * @param {Object} options
+   * @param {String} options.prefix Default guild prefix
+   * @param {RegExp?} options.argumentRegex Regex used for spiting arguments
+   * @returns Handler
+   */
+  constructor(options) {
+    if (options.prefix &amp;&amp; options.prefix !== "") this.prefix = options.prefix;
+    else throw new Error("Invalid prefix");
+
+    if (options.argumentRegex) {
+      if (options.argumentRegex instanceof RegExp) this.argumentRegex = options.argumentRegex;
+      else throw new Error("Invalid argument regex");
+    } else this.argumentRegex = Constants.regexes.argumentRegex;
+
+    this.guildPrefixes = new Map();
+    this.commands = [];
+    this.preconditions = new Map();
+    this.middleware = new Map();
+    this.typeReaders = new Map();
+  }
+
+  /**
+   *
+   * @param {String} guildID
+   * @param {String} prefix
+   */
+  registerGuildPrefix(guildID, prefix) {
+    if (prefix === this.prefix) this.guildPrefixes.delete(guildID);
+    else if (prefix &amp;&amp; prefix !== "") this.guildPrefixes.set(guildID, prefix);
+  }
+
+  /**
+   *
+   * @param {Command[] | Command} commands
+   */
+  registerCommands(commands) {
+    /* TODO Check Commands
+    * - Instance of Command
+    * - Preconditions exist
+    * - Middleware exist
+    * - Names are not already taken
+    */
+    if (Array.isArray(commands)) this.commands.concat(commands);
+    else if (commands) this.commands.push(commands);
+  }
+
+  /**
+   * @param {Precondition[] | Precondition} preconditions
+   */
+  registerPreconditions(preconditions) {
+    if (Array.isArray(preconditions)) {
+      for (const p of preconditions) {
+        this.preconditions.set(p.name, p);
+      }
+    }
+    else if (preconditions) this.preconditions.set(preconditions.name, preconditions);
+  }
+
+  /**
+   *
+   * @param {Middleware[] | Middleware} middleware
+   */
+  registerMiddleware(middleware) {
+    if (Array.isArray(middleware)) {
+      for (const m of middleware) {
+        this.middleware.set(m.name, m);
+      }
+    }
+    else if (middleware) this.middleware.set(middleware.name, middleware);
+  }
+
+  /**
+   *
+   * @param {TypeReader[] | TypeReader} typeReaders
+   */
+  registerTypeReaders(typeReaders) {
+    if (Array.isArray(typeReaders)) {
+      for (const t of typeReaders) {
+        this.typeReaders.set(t.name, t);
+      }
+    }
+    else if (typeReaders) this.typeReaders.set(typeReaders.name, typeReaders);
+  }
+
+  /**
+   *
+   * @private
+   * @param {Eris.Message} message
+   * @returns {{Command: Command, Content: string}|boolean}
+   */
+  parseCommand(msg) {
+    const prefix = msg.channel.guild &amp;&amp; this.guildPrefixes.has(msg.channel.guild.id) ? this.guildPrefixes.get(msg.channel.guild.id) : this.prefix;
+    if (new RegExp('^' + prefix + '.{1,}', 'i').test(msg.content)) {
+      let Content = msg.content.slice(prefix.length);
+      const Command = this.commands.find(c => {
+        if (c.guildOnly &amp;&amp; msg.channel.type !== 0) return false;
+        return !!c.names.find(n => {
+          if (new RegExp('^' + n + ' ?.{0,}', 'i').test(Content)) {
+            Content = Content.slice(n.length).trim();
+            return true;
+          } else return false;
+        });
+      });
+      return {
+        Command,
+        Content
+      }
+    } else return false;
+  }
+
+  /**
+   *
+   * @private
+   * @param {Eris.Message} message
+   * @param {Command} command
+   * @returns {boolean|String[]}
+   */
+  checkPermissions(msg, command) {
+    if (command.permissions.length > 0) {
+      const botMember = msg.channel.guild.get(msg._client.user.id);
+      return command.permissions.filter(p => !botMember.permission.has(p));
+    } else return true;
+  }
+
+  /**
+   *
+   * @private
+   * @param {Eris.Message} message
+   * @param {Command} command
+   * @returns {Promise&lt;{precondition: Precondition}|{}>}
+   */
+  async executePreconditions(msg, command) {
+    if (command.preconditions.length > 0) {
+      for (const pn of command.preconditions) {
+        const precondition = this.preconditions.get(pn);
+        const r = await Promise.resolve(precondition.run(msg, command));
+        if (r) continue;
+        return precondition;
+      }
+    }
+  }
+
+  /**
+   *
+   * @private
+   * @param {Eris.Message} message
+   * @param {Command} command
+   * @returns {Promise&lt;Eris.Message>}
+   */
+  async executeMiddleware(msg, command) {
+    if (command.middleware.length > 0) {
+      for (const m of command.middleware) {
+        const mw = this.middleware.get(m);
+        await Promise.resolve(mw.run(msg, command));
+      }
+    }
+  }
+
+  /**
+   *
+   * @private
+   * @param {String} content
+   * @param {Eris.Message} message
+   * @param {Command} command
+   * @returns {Promise&lt;Object>}
+   */
+  async parseArguments(content, msg, command) {
+    if (command.arguments.length === 0) return {};
+    const splitContent = content.split(this.argumentRegex);
+    const args = {};
+    let splitContentIndex = 0;
+    for (let i = 0; i &lt; command.arguments.length; i++) {
+      const argument = command.arguments[i];
+      const typeReader = this.typeReaders.get(argument.typeReader);
+      if (argument.repeatable) {
+        for (let o = 0; o &lt; argument.maxRepeats; o++) {
+          try {
+            args[argument.name] = await Promise.resolve(typeReader.run(splitContent[i], msg, command));
+            splitContentIndex++;
+          } catch (err) {
+            splitContentIndex++;
+            if (!argument.optional) return { Argument, Error: err };
+            else args[argument.name] = argument.defaultValue;
+          }
+        }
+      } else {
+        try {
+          args[argument.name] = await Promise.resolve(typeReader.run(splitContent[i], msg, command));
+          splitContentIndex++;
+        } catch (err) {
+          splitContentIndex++;
+          if (!argument.optional) return { Argument, Error: err };
+          else args[argument.name] = argument.defaultValue;
+        }
+      }
+    }
+    return args;
+  }
+
+  /**
+   *
+   * @private
+   * @param {Eris.Message} message
+   * @param {Command} command
+   * @param {Object} arguments
+   * @returns {Promise&lt;Object>}
+   */
+  async executeCommand(msg, command, args) {
+    try {
+      await Promise.resolve(command.run(msg, args));
+    } catch (err) {
+      return err;
+    }
+  }
+
+  /**
+   * Returns command if succeeded
+   * @param {Eris.Message} msg
+   * @returns {Promise&lt;{MissingPermissions: String[], Error: symbol}|{Precondition: Precondition, Error: symbol}|{Argument: Argument, ErrorMessage: String, Error: symbol}|{Exception: Error, Error: symbol}|{Error: symbol}|Command>}
+   */
+  async run(msg) {
+    const result = this.parseCommand(msg);
+    if (result) {
+      if (result.Command) {
+        if (!result.Command.checkCooldown(msg.author.id)) {
+          let MissingPermissions = this.checkPermissions(msg, result.Command);
+          if (MissingPermissions.length === 0) {
+            const Precondition = await this.executePreconditions(msg, result.Command);
+            if (!Precondition) {
+                await this.executeMiddleware(msg, result.Command);
+                const argumentResult = await this.parseArguments(result.Content, msg, result.Command);
+                if (!argumentResult.Argument) {
+                  const commandError = await this.executeCommand(msg, result.Command, argumentResult);
+                  if (!commandError) return result.Command;
+                  else {
+                    return {
+                      Error: CommandError.Exception,
+                      Exception: commandError
+                    }
+                  }
+                } else {
+                  return {
+                    Error: CommandError.Argument,
+                    Argument: argumentResult.Argument,
+                    ErrorMessage: argumentResult.Error
+                  }
+                }
+            } else {
+              return {
+                Error: CommandError.Precondition,
+                Precondition
+              }
+            }
+          } else {
+            return {
+              Error: CommandError.MissingPermissions,
+              MissingPermissions,
+            }
+          }
+        } else {
+          return {
+            Error: CommandError.Cooldown
+          }
+        }
+      } else {
+        return {
+          Error: CommandError.UnknownCommand
+        }
+      }
+    } else {
+      return {
+        Error: CommandError.Prefix
+      }
+    }
+  }
+}
+
+module.exports = Handler;</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<footer>
+    <img class="logo" src="img/toast-ui.png" style="">
+    <div class="footer-text">Dysnomia 1.0.0</div>
+</footer>
+<script>prettyPrint();</script>
+<script src="scripts/jquery.min.js"></script>
+<script src="scripts/tui-doc.js"></script>
+<script src="scripts/linenumber.js"></script>
+
+    <script>
+        var id = '_sub'.replace(/"/g, '_');
+        var selectedApi = document.getElementById(id); // do not use jquery selector
+        var $selectedApi = $(selectedApi);
+
+        $selectedApi.removeClass('hidden');
+        $selectedApi.parent().find('.glyphicon').removeClass('glyphicon-plus').addClass('glyphicon-minus');
+        showLnbApi();
+    </script>
+
+</body>
+</html>
