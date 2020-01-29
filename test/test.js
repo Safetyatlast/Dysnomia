@@ -2,6 +2,7 @@ const assert = require('assert');
 const Handler = new (require('../lib/structures/Handler')) ({ prefix: '&' });
 const Argument = require('../lib/structures/Argument');
 const TypeReader = require('../lib/structures/TypeReader');
+const Precondition = require('../lib/structures/Precondition');
 const Command = require('../lib/structures/Command');
 
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
@@ -23,7 +24,7 @@ describe('Handler', function() {
   });
 
   describe('#registerPrecondition()', function() {
-    const TestPrecondition = new (require('../lib/structures/Precondition')) ({name: 'TestPrecondition'});
+    const TestPrecondition = new Precondition({name: 'TestPrecondition'});
     Handler.registerPreconditions([TestPrecondition]);
     it('should add the precondition to the preconditions map', function() {
       assert.deepStrictEqual(Handler.preconditions.get('TestPrecondition'), TestPrecondition);
@@ -80,9 +81,9 @@ describe('Handler', function() {
   });
 
   describe('#executePreconditions()', function() {
-    const TruePrecondition = new (require('../lib/structures/Precondition')) ({name: 'TruePrecondition'});
+    const TruePrecondition = new Precondition({name: 'TruePrecondition'});
     TruePrecondition.run = () => true;
-    const FalsePrecondition = new (require('../lib/structures/Precondition')) ({name: 'FalsePrecondition'});
+    const FalsePrecondition = new Precondition({name: 'FalsePrecondition'});
     FalsePrecondition.run = () => false;
     Handler.registerPreconditions([TruePrecondition, FalsePrecondition]);
     const CommandA = new (require('../lib/structures/Command')) ({names: ["a"], preconditions: ['TruePrecondition']});
