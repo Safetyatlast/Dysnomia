@@ -7,8 +7,8 @@ const Command = require('../lib/structures/Command');
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
 describe('Handler', function() {
-  describe('#setGuildPrefix()', function() {
-    Handler.setGuildPrefix('401134835818692608', '!');
+  describe('#registerGuildPrefix()', function() {
+    Handler.registerGuildPrefix('401134835818692608', '!');
     it('should add the prefix as a value and guildID as key to the guildPrefixes map', function() {
       assert.equal(Handler.guildPrefixes.get('401134835818692608'), '!');
     });
