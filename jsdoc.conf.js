@@ -9,7 +9,7 @@ module.exports = {
     "recurse": true
   },
   "source": {
-    "include": ["index.js", "lib"]
+    "include": ["index.js", "lib", "README.MD"]
   },
   "templates": {
     "name": "Dysnomia",
