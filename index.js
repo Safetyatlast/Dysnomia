@@ -20,6 +20,7 @@ Dysnomia.Precondition = require('./lib/structures/Precondition');
 Dysnomia.Argument = require('./lib/structures/Argument');
 Dysnomia.TypeReader = require('./lib/structures/TypeReader');
 
+Dysnomia.MultiRequire = require('./lib/util/MultiRequire');
 Dysnomia.Constants = require('./lib/Constants');
 
 Dysnomia.CommandError = require('./lib/enums/CommandError');
