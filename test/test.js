@@ -1,5 +1,5 @@
 const assert = require('assert');
-const Handler = new (require('../lib/structures/Handler')) ({ prefix: '&' });
+const Handler = new (require('../lib/structures/Handler')) ({}, { prefix: '&' });
 const Argument = require('../lib/structures/Argument');
 const TypeReader = require('../lib/structures/TypeReader');
 const Precondition = require('../lib/structures/Precondition');
