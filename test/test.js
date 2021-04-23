@@ -43,7 +43,7 @@ describe('Handler', function() {
           }
         },
         content: "&ping"
-      }), { Command, Content: "" });
+      }), { Command, Content: "", Prefix: "&" });
     });
     it('should parse command with arguments', function() {
       // Fake Message
@@ -54,7 +54,7 @@ describe('Handler', function() {
           }
         },
         content: "&ping !"
-      }), { Command, Content: "!" });
+      }), { Command, Content: "!", Prefix: "&" });
     });
     it('should parse command with second name', function() {
       // Fake Message
@@ -65,7 +65,7 @@ describe('Handler', function() {
           }
         },
         content: "&pong !"
-      }), { Command, Content: "!" });
+      }), { Command, Content: "!", Prefix: "&" });
     });
     it('should parse a command with sub command name and normal name', function() {
       // Fake Message
@@ -76,7 +76,7 @@ describe('Handler', function() {
           }
         },
         content: "&ping pong !"
-      }), { Command, Content: "!" });
+      }), { Command, Content: "!", Prefix: "&" });
     });
   });
 
