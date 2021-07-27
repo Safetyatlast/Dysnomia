@@ -1,5 +1,5 @@
 const assert = require('assert');
-const Handler = new (require('../lib/structures/Handler')) ({}, { prefix: '&' });
+const Handler = new (require('../lib/structures/Handler')) ({}, { prefix: '&', cooldown: 250 });
 const Argument = require('../lib/structures/Argument');
 const TypeReader = require('../lib/structures/TypeReader');
 const Precondition = require('../lib/structures/Precondition');
@@ -144,28 +144,26 @@ describe('Handler', function() {
       assert.deepStrictEqual(r, {"argument 1": "hi"});
     });
   });
-});
 
-describe('Command', function() {
-  const Command = new (require('../lib/structures/Command')) ({names: ["cooldown"], cooldown: 250});
-  Handler.registerCommands(Command);
-  describe('#updateCooldown()', function() {
-    it('should add user to the cooldowns map', function() {
-      Command.updateCooldown("158594933274574849");
-      assert.equal(Command.cooldowns.has("158594933274574849"), true);
+  describe('Cooldown', function () {
+    describe('#updateCooldown()', function() {
+      it('should add user to the cooldowns map', function() {
+        Handler.updateCooldown("158594933274574849");
+        assert.equal(Handler.cooldowns.has("158594933274574849"), true);
+      });
     });
-  });
-  describe('#checkCooldown()', function() {
-    it('should return false when user is not on a cooldown', function() {
-      assert.equal(Command.checkCooldown("279866000533618689"), false);
+    describe('#checkCooldown()', function() {
+      it('should return false when user is not on a cooldown', function() {
+        assert.equal(Handler.checkCooldown("279866000533618689"), false);
+      });
+      it('should return true when user is on a cooldown', function() {
+        Handler.updateCooldown("279866000533618689");
+        assert.equal(Handler.checkCooldown("279866000533618689"), true);
+      });
+      it('should remove users cooldown and return false', async function() {
+        await sleep(500);
+        assert.equal(Handler.checkCooldown("279866000533618689"), false);
+      });
     });
-    it('should return true when user is on a cooldown', function() {
-      Command.updateCooldown("279866000533618689");
-      assert.equal(Command.checkCooldown("279866000533618689"), true);
-    });
-    it('should remove users cooldown and return false', async function() {
-      await sleep(500);
-      assert.equal(Command.checkCooldown("279866000533618689"), false);
-    });
-  });
+  })
 });
