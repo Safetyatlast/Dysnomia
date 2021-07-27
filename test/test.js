@@ -108,7 +108,7 @@ describe('Handler', function() {
     MiddlewareB.run = (msg) => { msg.B = "B"; return msg };
     Handler.registerMiddleware([MiddlewareA, MiddlewareB]);
     const CommandD = new (require('../lib/structures/Command')) ({names: ["d"], middleware: ['MiddlewareA']});
-    const CommandE = new (require('../lib/structures/Command')) ({names: ["c"], middleware: ['MiddlewareA', 'MiddlewareB']});
+    const CommandE = new (require('../lib/structures/Command')) ({names: ["e"], middleware: ['MiddlewareA', 'MiddlewareB']});
     Handler.registerCommands([CommandD, CommandE]);
     it('should return a modified message object', async function() {
       const fmsg = {};
