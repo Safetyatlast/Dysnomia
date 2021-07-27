@@ -19,6 +19,6 @@
     "tui-jsdoc-template": "^1.2.2"
   },
   "peerDependencies": {
-    "eris": "^0.13.1"
+    "eris": "^0.15.1"
   }
 }
