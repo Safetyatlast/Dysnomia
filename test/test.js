@@ -1,5 +1,4 @@
 const assert = require('assert');
-const Handler = new (require('../lib/structures/Handler')) ({}, { prefix: '&', cooldown: 250 });
 const Argument = require('../lib/structures/Argument');
 const TypeReader = require('../lib/structures/TypeReader');
 const Precondition = require('../lib/structures/Precondition');
@@ -8,22 +7,26 @@ const Command = require('../lib/structures/Command');
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
 describe('Handler', function() {
-  describe('#registerGuildPrefix()', function() {
-    Handler.registerGuildPrefix('401134835818692608', '!');
-    it('should add the prefix as a value and guildID as key to the guildPrefixes map', function() {
-      assert.equal(Handler.guildPrefixes.get('401134835818692608'), '!');
+  describe('Prefixes', function () {
+    const Handler = new (require('../lib/structures/Handler')) ({}, { prefix: '&', cooldown: 250 });
+    describe('#registerGuildPrefix()', function() {
+      Handler.registerGuildPrefix('401134835818692608', '!');
+      it('should add the prefix as a value and guildID as key to the guildPrefixes map', function() {
+        assert.equal(Handler.guildPrefixes.get('401134835818692608'), '!');
+      });
     });
-  });
 
-  describe('#registerCommands()', function() {
-    const Command = new (require('../lib/structures/Command')) ({names: ["prefix"]});
-    Handler.registerCommands(Command);
-    it('should add the command to the commands array', function() {
-      assert.equal(Handler.commands.find(c => c.names.includes("prefix")), Command);
+    describe('#deregisterGuildPrefix()', function () {
+      Handler.registerGuildPrefix('860803400421474315', '!');
+      Handler.deregisterGuildPrefix('860803400421474315');
+      it('should remove the guild\'s prefix from the prefix map', function () {
+        assert.equal(Handler.guildPrefixes.has('860803400421474315'), false);
+      });
     });
   });
 
   describe('#registerPrecondition()', function() {
+    const Handler = new (require('../lib/structures/Handler')) ({}, { prefix: '&', cooldown: 250 });
     const TestPrecondition = new Precondition({name: 'TestPrecondition'});
     Handler.registerPreconditions([TestPrecondition]);
     it('should add the precondition to the preconditions map', function() {
@@ -31,64 +34,97 @@ describe('Handler', function() {
     });
   });
 
-  describe('#parseCommand()', function() {
-    const Command = new (require('../lib/structures/Command')) ({names: ["ping pong", "ping", "pong"]});
-    Handler.registerCommands(Command);
-    it('should parse command with no arguments', function() {
-      // Fake Message
-      assert.deepStrictEqual(Handler.parseCommand({
-        channel: {
-          guild: {
-            id: '482723843203399740'
-          }
-        },
-        content: "&ping"
-      }), { Command, Content: "", Prefix: "&" });
+  describe('#registerTypeReaders()', function () {
+    const Handler = new (require('../lib/structures/Handler')) ({}, { prefix: '&', cooldown: 250 });
+    let TestTypeReader = new TypeReader({name: 'TestTypeReader'});
+    it('should add the typeReader to the typeReader map', function () {
+      Handler.registerTypeReaders([TestTypeReader]);
+      assert.deepStrictEqual(Handler.typeReaders.get('TestTypeReader'), TestTypeReader);
     });
-    it('should parse command with arguments', function() {
-      // Fake Message
-      assert.deepStrictEqual(Handler.parseCommand({
-        channel: {
-          guild: {
-            id: '482723843203399740'
-          }
-        },
-        content: "&ping !"
-      }), { Command, Content: "!", Prefix: "&" });
+  });
+  describe('Commands', function() {
+    describe('#registerCommands()', function() {
+      it('should add the command to the commands array', function() {
+        const Handler = new (require('../lib/structures/Handler')) ({}, { prefix: '&', cooldown: 250 });
+        const command = new Command ({names: ["prefix"]});
+        Handler.registerCommands(command);
+        assert.equal(Handler.commands.find(c => c.names.includes("prefix")), command);
+      });
+      it('should throw an error if command has two arguments with the same name', async function () {
+        const Handler = new (require('../lib/structures/Handler')) ({}, { prefix: '&', cooldown: 250 });
+        await Handler.loadDefaultTypeReaders();
+        const command = new Command ({
+          names: ["test"],
+          arguments: [
+            new Argument({ name: "argument1", typeReader: "String" }),
+            new Argument({ name: "argument1", typeReader: "String" })
+          ]
+        });
+        assert.throws(() => Handler.registerCommands(command), Error, `Command argument1 already has a duplicate argument name`);
+      });
     });
-    it('should parse command with second name', function() {
-      // Fake Message
-      assert.deepStrictEqual(Handler.parseCommand({
-        channel: {
-          guild: {
-            id: '482723843203399740'
-          }
-        },
-        content: "&pong !"
-      }), { Command, Content: "!", Prefix: "&" });
-    });
-    it('should parse a command with sub command name and normal name', function() {
-      // Fake Message
-      assert.deepStrictEqual(Handler.parseCommand({
-        channel: {
-          guild: {
-            id: '482723843203399740'
-          }
-        },
-        content: "&ping pong !"
-      }), { Command, Content: "!", Prefix: "&" });
+
+    describe('#parseCommand()', function() {
+      const Handler = new (require('../lib/structures/Handler')) ({}, { prefix: '&', cooldown: 250 });
+      const command = new Command ({names: ["ping pong", "ping", "pong"]});
+      Handler.registerCommands(command);
+      it('should parse command with no arguments', function() {
+        // Fake Message
+        assert.deepStrictEqual(Handler.parseCommand({
+          channel: {
+            guild: {
+              id: '482723843203399740'
+            }
+          },
+          content: "&ping"
+        }), { Command: command, Content: "", Prefix: "&" });
+      });
+      it('should parse command with arguments', function() {
+        // Fake Message
+        assert.deepStrictEqual(Handler.parseCommand({
+          channel: {
+            guild: {
+              id: '482723843203399740'
+            }
+          },
+          content: "&ping !"
+        }), { Command: command, Content: "!", Prefix: "&" });
+      });
+      it('should parse command with second name', function() {
+        // Fake Message
+        assert.deepStrictEqual(Handler.parseCommand({
+          channel: {
+            guild: {
+              id: '482723843203399740'
+            }
+          },
+          content: "&pong !"
+        }), { Command: command, Content: "!", Prefix: "&" });
+      });
+      it('should parse a command with sub command name and normal name', function() {
+        // Fake Message
+        assert.deepStrictEqual(Handler.parseCommand({
+          channel: {
+            guild: {
+              id: '482723843203399740'
+            }
+          },
+          content: "&ping pong !"
+        }), { Command: command, Content: "!", Prefix: "&" });
+      });
     });
   });
 
   describe('#executePreconditions()', function() {
+    const Handler = new (require('../lib/structures/Handler')) ({}, { prefix: '&', cooldown: 250 });
     const TruePrecondition = new Precondition({name: 'TruePrecondition'});
     TruePrecondition.run = () => true;
     const FalsePrecondition = new Precondition({name: 'FalsePrecondition'});
     FalsePrecondition.run = () => false;
     Handler.registerPreconditions([TruePrecondition, FalsePrecondition]);
-    const CommandA = new (require('../lib/structures/Command')) ({names: ["a"], preconditions: ['TruePrecondition']});
-    const CommandB = new (require('../lib/structures/Command')) ({names: ["b"], preconditions: ['FalsePrecondition']});
-    const CommandC = new (require('../lib/structures/Command')) ({names: ["c"], preconditions: ['TruePrecondition', 'FalsePrecondition']});
+    const CommandA = new Command ({names: ["a"], preconditions: ['TruePrecondition']});
+    const CommandB = new Command ({names: ["b"], preconditions: ['FalsePrecondition']});
+    const CommandC = new Command ({names: ["c"], preconditions: ['TruePrecondition', 'FalsePrecondition']});
     Handler.registerCommands([CommandA, CommandB, CommandC]);
     it('should return undefined when all Preconditions return true', async function() {
       assert.deepStrictEqual(await Handler.executePreconditions({}, CommandA), undefined);
@@ -102,13 +138,14 @@ describe('Handler', function() {
   });
 
   describe('#executeMiddleware()', function() {
+    const Handler = new (require('../lib/structures/Handler')) ({}, { prefix: '&', cooldown: 250 });
     const MiddlewareA = new (require('../lib/structures/Precondition')) ({name: 'MiddlewareA'});
     MiddlewareA.run = (msg) => { msg.A = "A"; return msg };
     const MiddlewareB = new (require('../lib/structures/Precondition')) ({name: 'MiddlewareB'});
     MiddlewareB.run = (msg) => { msg.B = "B"; return msg };
     Handler.registerMiddleware([MiddlewareA, MiddlewareB]);
-    const CommandD = new (require('../lib/structures/Command')) ({names: ["d"], middleware: ['MiddlewareA']});
-    const CommandE = new (require('../lib/structures/Command')) ({names: ["e"], middleware: ['MiddlewareA', 'MiddlewareB']});
+    const CommandD = new Command ({names: ["d"], middleware: ['MiddlewareA']});
+    const CommandE = new Command ({names: ["e"], middleware: ['MiddlewareA', 'MiddlewareB']});
     Handler.registerCommands([CommandD, CommandE]);
     it('should return a modified message object', async function() {
       const fmsg = {};
@@ -123,6 +160,7 @@ describe('Handler', function() {
   });
 
   describe('#parseArguments()', function() {
+    const Handler = new (require('../lib/structures/Handler')) ({}, { prefix: '&', cooldown: 250 });
     const TypeReaderA = new TypeReader({ name: "string" });
     TypeReaderA.run = async (c) => {
       if (typeof c === 'string') return c;
@@ -146,6 +184,7 @@ describe('Handler', function() {
   });
 
   describe('Cooldown', function () {
+    const Handler = new (require('../lib/structures/Handler')) ({}, { prefix: '&', cooldown: 250 });
     describe('#updateCooldown()', function() {
       it('should add user to the cooldowns map', function() {
         Handler.updateCooldown("158594933274574849");
