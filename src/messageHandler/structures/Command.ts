@@ -1,22 +1,32 @@
 "use strict";
+import { Message } from 'eris';
+import Argument from "./Argument";
+
 /**
  *
- * @property {String[]} names Names of the command
+ * @property {string[]} names Names of the command
  * @property {boolean} guildOnly If the command can only be run in a guild
- * @property {String[]} permissions Permissions the bot requires to run the command
+ * @property {string[]} permissions Permissions the bot requires to run the command
  * @property {Number} cooldown How long until a member can run the command again
- * @property {String[]} preconditions Preconditions to run before running the command
- * @property {String[]} middleware Middleware to run before running the command
+ * @property {string[]} preconditions Preconditions to run before running the command
+ * @property {string[]} middleware Middleware to run before running the command
  * @property {Argument[]} arguments Arguments for the commands
  */
-class Command {
+export default class Command {
+  names: string[];
+  guildOnly: boolean;
+  permissions: string[];
+  preconditions: string[];
+  middleware: string[];
+  arguments: Argument[];
+  nameUsed?: string;
   /**
    *
-   * @param {Object} options
-   * @param {String[] | String} options.names
-   * @param {String[] | String?} options.permissions
-   * @param {String[] | String?} options.preconditions
-   * @param {String[] | String?} options.middleware
+   * @param {object} options
+   * @param {string[] | string} options.names
+   * @param {string[] | string?} options.permissions
+   * @param {string[] | string?} options.preconditions
+   * @param {string[] | string?} options.middleware
    * @param {Argument[] | Argument?} options.arguments
    * @param {boolean?} options.guildOnly
    * @returns Command
@@ -47,10 +57,9 @@ class Command {
 
   /**
    *
-   * @param {import("eris").Message} message
-   * @param {Object} args
+   * @param {Message} message
+   * @param {Command} command
+   * @param {object} args
    */
-  async run(message, args) {};
+  async run(message: Message, command: Command, args: { [key: string]: any }) {}
 }
-
-module.exports = Command;

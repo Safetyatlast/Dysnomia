@@ -2,23 +2,26 @@
   "name": "dysnomia",
   "version": "1.0.0",
   "description": "A lightweight, efficient Eris command handler and router",
-  "main": "index.js",
+  "main": "src/index.js",
   "scripts": {
     "test": "mocha",
+    "build": "npx tsc",
     "docs": "jsdoc -c jsdoc.conf.js"
   },
   "author": "Motoenduroboy",
   "license": "ISC",
-  "dependencies": {},
+  "dependencies": {
+    "eris": "bsian03/eris#v9"
+  },
   "devDependencies": {
     "eslint": "6.8.0",
     "eslint-config-airbnb-base": "14.0.0",
     "eslint-plugin-import": "2.20.0",
     "jsdoc": "^3.6.3",
     "mocha": "^7.0.0",
-    "tui-jsdoc-template": "^1.2.2"
-  },
-  "peerDependencies": {
-    "eris": "^0.15.1"
+    "tui-jsdoc-template": "^1.2.2",
+    "@types/node": "^16.0.0",
+    "ts-node": "^10.1.0",
+    "typescript": "^4.3.5"
   }
 }

@@ -1,19 +1,27 @@
 "use strict";
 /**
  *
- * @property {String} name Name of the Argument
- * @property {String | String[]} typeReaders Name of the type reader the argument calls, if an array of type reader names are provided it will match the first one which successfully runs
+ * @property {string} name Name of the Argument
+ * @property {string | string[]} typeReaders Name of the type reader the argument calls, if an array of type reader names are provided it will match the first one which successfully runs
  * @property {Boolean} optional If the argument is optional
  * @property {Boolean} repeatable If the argument should repeat
  * @property {Number} maxRepeats How many times should the argument repeat before stopping
  * @property {any} defaultValue The defaultValue for an optional argument
  */
-class Argument {
+export default class Argument {
+  name: string;
+  typeReaders: string[];
+  optional: boolean;
+  repeatable: boolean;
+  maxRepeats: number;
+  defaultValue: any;
+  typeReaderOptions: object;
+
   /**
    *
-   * @param {Object} options
-   * @param {String} options.name
-   * @param {String | String[]} options.typeReader
+   * @param {object} options
+   * @param {string} options.name
+   * @param {string | string[]} options.typeReader
    * @param {boolean?} options.optional
    * @param {boolean?} options.repeatable
    * @param {number?} options.maxRepeats
@@ -44,5 +52,3 @@ class Argument {
     else this.typeReaderOptions = {};
   }
 }
-
-module.exports = Argument;
